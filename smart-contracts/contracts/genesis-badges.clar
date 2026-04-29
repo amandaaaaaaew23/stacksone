@@ -65,3 +65,6 @@
     (ok token-id)
   )
 )
+
+(define-public (ping-68)
+  (ok true))
