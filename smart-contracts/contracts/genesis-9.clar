@@ -253,3 +253,6 @@
 
 (define-read-only (get-random-183)
   (ok u183))
+
+(define-public (ping-202)
+  (ok true))
