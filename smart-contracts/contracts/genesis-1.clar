@@ -304,3 +304,6 @@
 
 (define-read-only (get-random-124)
   (ok u124))
+
+(define-public (ping-133)
+  (ok true))
