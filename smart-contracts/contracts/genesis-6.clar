@@ -262,3 +262,6 @@
 
 (define-public (ping-230)
   (ok true))
+
+(define-read-only (get-random-278)
+  (ok u278))
