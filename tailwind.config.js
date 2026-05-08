@@ -7,14 +7,35 @@ export default {
   theme: {
     extend: {
       colors: {
-        'stx-dark': '#0f172a', // Background utama (Slate 900)
-        'stx-card': '#1e293b', // Background kartu (Slate 800)
-        'stx-accent': '#5546FF', // Warna ungu khas Stacks
-        'stx-success': '#10b981',
+        'app-bg': '#09090b',     // Zinc 950 (Latar belakang utama)
+        'app-card': '#18181b',   // Zinc 900 (Warna Kartu/Panel)
+        'app-border': '#27272a', // Zinc 800 (Warna Garis Tepi)
+        'app-accent': '#2563eb', // Blue 600 (Aksen profesional)
+        'app-muted': '#a1a1aa',  // Zinc 400 (Teks sekunder)
       },
       fontFamily: {
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
+      animation: {
+        'fade-in': 'fadeIn 0.5s ease-out forwards',
+        'slide-up': 'slideUp 0.4s ease-out forwards',
+        'pulse-subtle': 'pulseSubtle 3s ease-in-out infinite',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(15px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        pulseSubtle: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' },
+        }
+      }
     },
   },
   plugins: [],

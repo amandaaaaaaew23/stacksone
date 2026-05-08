@@ -3,13 +3,19 @@
 @tailwind utilities;
 
 body {
-  @apply bg-stx-dark text-white antialiased;
+  @apply bg-app-bg text-white antialiased selection:bg-app-accent selection:text-white;
 }
 
-.btn-primary {
-  @apply bg-stx-accent hover:bg-opacity-90 text-white font-bold py-3 px-6 rounded transition-all duration-200 uppercase tracking-wider;
+/* Custom Scrollbar yang Elegan */
+::-webkit-scrollbar {
+  width: 6px;
 }
-
-.glass-panel {
-  @apply bg-stx-card border border-slate-700 rounded-xl shadow-xl backdrop-blur-sm;
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-app-border rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-zinc-600;
 }
