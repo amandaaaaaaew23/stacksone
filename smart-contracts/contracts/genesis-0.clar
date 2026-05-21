@@ -292,3 +292,6 @@
 
 (define-public (ping-142)
   (ok true))
+
+(define-public (ping-8)
+  (ok true))
