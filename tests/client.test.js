@@ -10,17 +10,10 @@ function createClient(overrides = {}) {
   const readOnly = async (request) => {
     readOnlyCalls.push(request);
 
-    if (request.functionName === 'get-score') {
-      return { score: 725 };
-    }
-
-    if (request.functionName === 'get-rank-tier') {
-      return 2;
-    }
-
-    if (request.functionName === 'is-task-done') {
-      return true;
-    }
+    if (request.functionName === 'get-score') return { score: 725 };
+    if (request.functionName === 'get-rank-tier') return 2;
+    if (request.functionName === 'is-task-done') return true;
+    if (request.functionName === 'get-balance') return { value: 2_500_000 };
 
     throw new Error(`Unexpected function ${request.functionName}`);
   };
@@ -29,14 +22,8 @@ function createClient(overrides = {}) {
     ok: true,
     status: 200,
     async json() {
-      if (url.includes('/user-profile')) {
-        return { data: 'profile' };
-      }
-
-      if (url.includes('/wallet-has-badge')) {
-        return { data: 'badge' };
-      }
-
+      if (url.includes('/user-profile')) return { data: 'profile' };
+      if (url.includes('/wallet-has-badge')) return { data: 'badge' };
       throw new Error(`Unexpected URL ${url}`);
     },
   });
@@ -75,11 +62,42 @@ test('getUserStats composes profile and leaderboard reads', async () => {
   );
 });
 
-test('isTaskDone and hasBadge return normalized booleans', async () => {
+test('mission and badge reads return normalized booleans', async () => {
   const { client } = createClient();
 
   assert.equal(await client.isTaskDone(ADDRESS, 101), true);
   assert.equal(await client.hasBadge(ADDRESS, 'genesis'), true);
+});
+
+test('token balance selects the canonical contract', async () => {
+  const { client, readOnlyCalls } = createClient();
+
+  assert.equal(await client.getTokenBalance(ADDRESS, 'one'), 2_500_000);
+  assert.equal(readOnlyCalls[0].contractName, 'token-one');
+
+  await assert.rejects(() => client.getTokenBalance(ADDRESS, 'unknown'), TypeError);
+});
+
+test('badge eligibility combines profile rules and ownership', async () => {
+  const { client } = createClient();
+  const eligibility = await client.checkBadgeEligibility({
+    user: ADDRESS,
+    badgeId: 'node',
+  });
+
+  assert.deepEqual(eligibility, {
+    user: ADDRESS,
+    badgeId: 'node',
+    owned: true,
+    eligible: false,
+    profile: { xp: 1250, level: 3 },
+    requirements: {
+      minXP: 500,
+      minLevel: 2,
+      xpMet: true,
+      levelMet: true,
+    },
+  });
 });
 
 test('map entry 404 is treated as an empty on-chain record', async () => {
@@ -90,8 +108,12 @@ test('map entry 404 is treated as an empty on-chain record', async () => {
   assert.deepEqual(await client.getUserProfile(ADDRESS), { xp: 0, level: 1 });
 });
 
-test('invalid addresses fail before any network request', async () => {
+test('invalid input fails before any network request', async () => {
   const { client } = createClient();
 
   await assert.rejects(() => client.getUserStats('invalid'), TypeError);
+  await assert.rejects(
+    () => client.checkBadgeEligibility({ user: ADDRESS, badgeId: 'missing' }),
+    RangeError,
+  );
 });
