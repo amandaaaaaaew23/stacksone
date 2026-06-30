@@ -10,7 +10,7 @@ import {
   uintCV,
 } from '@stacks/transactions';
 
-import { STACKSONE_MAINNET } from './contracts.js';
+import { BADGE_CATALOG, STACKSONE_MAINNET } from './contracts.js';
 import { resolveStacksNetwork } from './network.js';
 import {
   assertStacksAddress,
@@ -46,10 +46,22 @@ export class StacksOneClient {
   async callReadOnly(contractName, functionName, functionArgs, senderAddress) {
     const sender = assertStacksAddress(senderAddress);
 
+    if (typeof contractName !== 'string' || contractName.trim() === '') {
+      throw new TypeError('contractName must be a non-empty string');
+    }
+
+    if (typeof functionName !== 'string' || functionName.trim() === '') {
+      throw new TypeError('functionName must be a non-empty string');
+    }
+
+    if (!Array.isArray(functionArgs)) {
+      throw new TypeError('functionArgs must be an array');
+    }
+
     return this.readOnly({
       contractAddress: this.deployer,
-      contractName,
-      functionName,
+      contractName: contractName.trim(),
+      functionName: functionName.trim(),
       functionArgs,
       network: this.network,
       senderAddress: sender,
@@ -115,6 +127,28 @@ export class StacksOneClient {
     return toSafeNumber(this.decode(result), 0);
   }
 
+  async getTokenBalance(address, token = 'one') {
+    const user = assertStacksAddress(address);
+    const contractName = token === 'poin'
+      ? this.contracts.tokenPoin
+      : token === 'one'
+        ? this.contracts.tokenOne
+        : null;
+
+    if (!contractName) {
+      throw new TypeError('token must be "one" or "poin"');
+    }
+
+    const result = await this.callReadOnly(
+      contractName,
+      'get-balance',
+      [standardPrincipalCV(user)],
+      user,
+    );
+
+    return toSafeNumber(this.decode(result), 0);
+  }
+
   async isTaskDone(address, taskId) {
     const user = assertStacksAddress(address);
     const normalizedTaskId = Number(taskId);
@@ -150,6 +184,36 @@ export class StacksOneClient {
     );
 
     return toBoolean(value, false);
+  }
+
+  async checkBadgeEligibility({ user, badgeId }) {
+    const address = assertStacksAddress(user);
+    const badge = BADGE_CATALOG.find((item) => item.id === badgeId);
+
+    if (!badge) {
+      throw new RangeError(`Unknown badge id: ${badgeId}`);
+    }
+
+    const [profile, owned] = await Promise.all([
+      this.getUserProfile(address),
+      this.hasBadge(address, badge.id),
+    ]);
+
+    const requirements = {
+      minXP: badge.minXP,
+      minLevel: badge.minLevel,
+      xpMet: profile.xp >= badge.minXP,
+      levelMet: profile.level >= badge.minLevel,
+    };
+
+    return {
+      user: address,
+      badgeId: badge.id,
+      owned,
+      eligible: !owned && requirements.xpMet && requirements.levelMet,
+      profile,
+      requirements,
+    };
   }
 
   async getUserStats(address) {
