@@ -71,7 +71,7 @@ Application code imports these identifiers from `sdk/contracts.js` to prevent co
 - Supabase is optional and used only as a supporting layer.
 - Contract changes require explicit versioning and migration.
 
-See [Development Workflow](docs/WORKFLOW.md), [Architecture](docs/ARCHITECTURE.md), and [Security Policy](docs/SECURITY.md).
+See [Development Workflow](docs/WORKFLOW.md), [System Architecture](docs/SYSTEM_ARCHITECTURE.md), and [Security Policy](docs/SECURITY.md).
 
 ## Roadmap
 
